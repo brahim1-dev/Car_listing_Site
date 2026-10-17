@@ -4,16 +4,20 @@ import SignIn from "./pages/SignIn"
 import SingUp from "./pages/SignUp"
 import About from "./pages/About"
 import Profile from "./pages/Profile"
+import Header from "./components/Header"
 
 const App = () => {
   return (
-    <Routes>
-      <Route path="/" element={<Home/>}/>
-      <Route path="/sign-in" element={<SignIn/>}/>
-      <Route path="/sign-up" element={<SingUp/>}/>
-      <Route path="/about" element={<About/>}/>
-      <Route path="/profile" element={<Profile/>}/>
-    </Routes>
+    <>
+      <Header />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/sign-in" element={<SignIn />} />
+        <Route path="/sign-up" element={<SingUp />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/profile" element={<Profile />} />
+      </Routes>
+    </>
   )
 }
 
