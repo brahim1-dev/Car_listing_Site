@@ -1,9 +1,84 @@
-import React from 'react'
+import { useState } from "react"
+import { Link, useNavigate } from "react-router-dom"
+import { toast } from "react-toastify"
 
-const Signin = () => {
+const SignIn = () => {
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const navigate = useNavigate()
+
+  const handleChange = (event) => {
+    setFormData({ ...formData, [event.target.id]: event.target.value })
+  }
+
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+    setIsSubmitting(true)
+
+    try {
+      const response = await fetch("/api/auth/signin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.message || "Could not sign in.")
+      }
+
+      toast.success(result.message || "Signed in successfully.")
+      navigate("/profile", { state: { user: result.data } })
+    } catch (requestError) {
+      toast.error(requestError.message || "Could not connect to the server.")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   return (
-    <div>Signin</div>
+    <main className="max-w-lg mx-auto p-3">
+      <h1 className="text-3xl text-center font-semibold my-7">Sign In</h1>
+      <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+        <input
+          className="border p-3 rounded-lg"
+          type="email"
+          placeholder="Email"
+          id="email"
+          autoComplete="email"
+          value={formData.email}
+          onChange={handleChange}
+          required
+        />
+        <input
+          className="border p-3 rounded-lg"
+          type="password"
+          placeholder="Password"
+          id="password"
+          autoComplete="current-password"
+          value={formData.password}
+          onChange={handleChange}
+          required
+        />
+        <button
+          className="bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80"
+          type="submit"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "Signing in..." : "Sign In"}
+        </button>
+      </form>
+      <div className="flex gap-2 mt-5">
+        <p>Need an account?</p>
+        <Link className="text-blue-700 hover:underline" to="/sign-up">
+          Sign up
+        </Link>
+      </div>
+    </main>
   )
 }
 
-export default Signin
+export default SignIn
