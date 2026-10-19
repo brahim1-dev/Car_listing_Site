@@ -1,6 +1,8 @@
 
 import bcryptjs from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import User from '../models/user.model.js'
+import { errorHandle } from '../utils/error.js'
 
 export const signup = async (req, res, next) => {
   const { username, password, email } = req.body
@@ -30,5 +32,55 @@ export const signup = async (req, res, next) => {
     })
   } catch (error) {
     next(error)
+  }
+}
+
+export const signin = async (req, res, next) => {
+  const { email, password } = req.body
+
+  if (!email || !password) {
+    return next(errorHandle(400, "Email and password are required"))
+  }
+  if (!process.env.JWT_SECRET) {
+    return next(errorHandle(500, "JWT_SECRET is not configured"))
+  }
+
+  try {
+    const validUser = await User.findOne({ email })
+    if (!validUser) {
+      return next(errorHandle(404, "User not found"))
+    }
+
+    const isMatch = bcryptjs.compareSync(password, validUser.password)
+    if (!isMatch) {
+      return next(errorHandle(401, "Invalid credentials"))
+    }
+
+    const token = jwt.sign(
+      { id: validUser._id.toString(), username: validUser.username },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" },
+    )
+
+    return res
+      .cookie("access_token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 1000,
+      })
+      .status(200)
+      .json({
+        success: true,
+        message: "Signed in successfully",
+        data: {
+          id: validUser._id,
+          username: validUser.username,
+          email: validUser.email,
+          avatar: validUser.avatar,
+        },
+      })
+  } catch (error) {
+    return next(error)
   }
 }
