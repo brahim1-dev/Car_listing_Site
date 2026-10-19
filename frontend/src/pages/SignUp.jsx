@@ -1,6 +1,6 @@
-
 import { useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
+import { toast } from "react-toastify"
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -8,9 +8,8 @@ const SignUp = () => {
     email: "",
     password: "",
   })
-  const [error, setError] = useState("")
-  const [success, setSuccess] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const navigate = useNavigate()
 
   const handleChange = (event) => {
     setFormData({ ...formData, [event.target.id]: event.target.value })
@@ -18,8 +17,6 @@ const SignUp = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault()
-    setError("")
-    setSuccess("")
     setIsSubmitting(true)
 
     try {
@@ -34,10 +31,10 @@ const SignUp = () => {
         throw new Error(result.message || "Could not create your account.")
       }
 
-      setSuccess(result.message || "Account created successfully.")
-      setFormData({ username: "", email: "", password: "" })
+      toast.success(result.message || "Account created successfully.")
+      navigate("/sign-in")
     } catch (requestError) {
-      setError(requestError.message || "Could not connect to the server.")
+      toast.error(requestError.message || "Could not connect to the server.")
     } finally {
       setIsSubmitting(false)
     }
@@ -84,8 +81,6 @@ const SignUp = () => {
         >
           {isSubmitting ? "Creating account..." : "Sign Up"}
         </button>
-        {error && <p className="text-red-700" role="alert">{error}</p>}
-        {success && <p className="text-green-700" role="status">{success}</p>}
       </form>
       <div className="flex gap-2 mt-5">
         <p>Have an account?</p>
