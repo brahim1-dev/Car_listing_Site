@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 import userRouter from './routes/user.router.js'
 import authRouter from './routes/auth.router.js';
+import router from './routes/user.router.js';
 
 
 dotenv.config();
@@ -16,18 +17,32 @@ app.use("/api/auth", authRouter)
 
 const port = process.env.PORT || 4000;
 
-const startServer = async () => {
-  try {
-    await connectDB();
-    await new Promise((resolve, reject) => {
-      const server = app.listen(port, resolve);
-      server.once("error", reject);
-    });
-    console.log(`Server is running on port ${port}`);
-  } catch (error) {
-    console.error("Application startup failed:", error.message);
-    process.exitCode = 1;
-  }
-};
+app.listen(4000, ()=>{
+  connectDB();
+  console.log(`Server is running on port ${port}`)
+})
 
-startServer();
+// const startServer = async () => {
+//   try {
+//     await connectDB();
+//     await new Promise((resolve, reject) => {
+//       const server = app.listen(port, resolve);
+//       server.once("error", reject);
+//     });
+//     console.log(`Server is running on port ${port}`);
+//   } catch (error) {
+//     console.error("Application startup failed:", error.message);
+//     process.exitCode = 1;
+//   }
+// };
+
+//Middleware used to handle possible errors
+
+app.use((error, req, res, next )=>{
+  const statusCode = error.statusCode || 500;
+  const message = error.message || "Internal Server Error";
+  return res.status(statusCode).json({success: false, statusCode, message})
+})
+
+
+// startServer();

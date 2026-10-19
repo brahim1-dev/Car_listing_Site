@@ -18,9 +18,9 @@ export const signup = async (req, res) =>{
       success: true,
       message:"User saved successfully",
       data: newUser,
-
     })
   } catch (error) {
-    res.status(400).json({ error: error.message})
+    // res.status(400).json({ error: error.message})
+    next(error);
   }
 }
