@@ -1,7 +1,31 @@
 import {FaSearch } from "react-icons/fa"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
+import { toast } from "react-toastify"
+import { useAppContext } from "../context/AppContext"
 
 const Header = () => {
+  const { currentUser, signoutUserStart, signoutUserSuccess, signoutUserFailure, loading } = useAppContext()
+  const navigate = useNavigate()
+
+  const handleSignOut = async () => {
+    signoutUserStart()
+    try {
+      const response = await fetch("/api/auth/signout", { method: "POST" })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.message || "Could not sign out.")
+      }
+
+      signoutUserSuccess()
+      toast.success(result.message || "Signed out successfully.")
+      navigate("/sign-in")
+    } catch (error) {
+      signoutUserFailure(error.message)
+      toast.error(error.message || "Could not connect to the server.")
+    }
+  }
+
   return (
     <header className="bg-slate-200 shadow-md">
       <div className="flex justify-between items-center max-w-6xl mx-auto p-3" >
@@ -22,8 +46,24 @@ const Header = () => {
         <ul className="flex gap-4">
           <Link className="hidden sm:inline text-slate-700 hover:underline" to="/">Home</Link>
           <Link className="text-slate-700 hover:underline" to="/about">About</Link>
-          <Link className="text-slate-700 hover:underline" to="/sign-up">Sign Up</Link>
-          <Link to="/profile">Profile</Link>
+          {currentUser ? (
+            <>
+              <Link className="text-slate-700 hover:underline" to="/profile">Profile</Link>
+              <button
+                className="text-slate-700 hover:underline disabled:opacity-60"
+                type="button"
+                onClick={handleSignOut}
+                disabled={loading}
+              >
+                {loading ? "Signing out..." : "Sign Out"}
+              </button>
+            </>
+          ) : (
+            <>
+              <Link className="text-slate-700 hover:underline" to="/sign-in">Sign In</Link>
+              <Link className="text-slate-700 hover:underline" to="/sign-up">Sign Up</Link>
+            </>
+          )}
         </ul>
       </div>
     </header>

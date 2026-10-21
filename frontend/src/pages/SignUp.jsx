@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { toast } from "react-toastify"
+import OAuth from "../components/OAuth"
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -82,6 +83,12 @@ const SignUp = () => {
           {isSubmitting ? "Creating account..." : "Sign Up"}
         </button>
       </form>
+      <div className="flex items-center gap-4 my-5">
+        <hr className="flex-1 border-slate-300" />
+        <span className="text-slate-500">OR</span>
+        <hr className="flex-1 border-slate-300" />
+      </div>
+      <OAuth />
       <div className="flex gap-2 mt-5">
         <p>Have an account?</p>
         <Link className="text-blue-700 hover:underline" to="/sign-in">

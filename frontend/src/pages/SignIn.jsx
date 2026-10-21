@@ -1,6 +1,9 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { toast } from "react-toastify"
+import { useAppContext } from "../context/AppContext"
+import OAuth from "../components/OAuth"
+
 
 const SignIn = () => {
   const [formData, setFormData] = useState({
@@ -9,6 +12,7 @@ const SignIn = () => {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const navigate = useNavigate()
+  const { signInStart, signInSuccess, signInFailure } = useAppContext()
 
   const handleChange = (event) => {
     setFormData({ ...formData, [event.target.id]: event.target.value })
@@ -17,6 +21,7 @@ const SignIn = () => {
   const handleSubmit = async (event) => {
     event.preventDefault()
     setIsSubmitting(true)
+    signInStart()
 
     try {
       const response = await fetch("/api/auth/signin", {
@@ -30,9 +35,11 @@ const SignIn = () => {
         throw new Error(result.message || "Could not sign in.")
       }
 
+      signInSuccess(result.data)
       toast.success(result.message || "Signed in successfully.")
-      navigate("/profile", { state: { user: result.data } })
+      navigate("/profile")
     } catch (requestError) {
+      signInFailure(requestError.message || "Could not sign in.")
       toast.error(requestError.message || "Could not connect to the server.")
     } finally {
       setIsSubmitting(false)
@@ -71,6 +78,12 @@ const SignIn = () => {
           {isSubmitting ? "Signing in..." : "Sign In"}
         </button>
       </form>
+      <div className="flex items-center gap-4 my-5">
+        <hr className="flex-1 border-slate-300" />
+        <span className="text-slate-500">OR</span>
+        <hr className="flex-1 border-slate-300" />
+      </div>
+      <OAuth />
       <div className="flex gap-2 mt-5">
         <p>Need an account?</p>
         <Link className="text-blue-700 hover:underline" to="/sign-up">
