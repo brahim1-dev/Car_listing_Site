@@ -1,7 +1,9 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { toast } from "react-toastify"
+import { useAppContext } from "../context/useAppContext"
 import OAuth from "../components/OAuth"
+import { firebaseConfigError, signUpWithEmail } from "../firebase"
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -11,6 +13,7 @@ const SignUp = () => {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const navigate = useNavigate()
+  const { signInStart, signInSuccess, signInFailure } = useAppContext()
 
   const handleChange = (event) => {
     setFormData({ ...formData, [event.target.id]: event.target.value })
@@ -18,24 +21,29 @@ const SignUp = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault()
+    const username = formData.username.trim()
+    if (!username) {
+      toast.error("Please enter a username.")
+      return
+    }
+
     setIsSubmitting(true)
+    signInStart()
 
     try {
-      const response = await fetch("/api/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      })
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.message || "Could not create your account.")
-      }
-
-      toast.success(result.message || "Account created successfully.")
-      navigate("/sign-in")
-    } catch (requestError) {
-      toast.error(requestError.message || "Could not connect to the server.")
+      const user = await signUpWithEmail(
+        username,
+        formData.email,
+        formData.password,
+      )
+      signInSuccess(user)
+      toast.success("Account created successfully.")
+      navigate("/profile")
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Could not create your account."
+      signInFailure(message)
+      toast.error(message)
     } finally {
       setIsSubmitting(false)
     }
@@ -44,6 +52,11 @@ const SignUp = () => {
   return (
     <main className="max-w-lg mx-auto p-3">
       <h1 className="text-3xl text-center font-semibold my-7">Sign Up</h1>
+      {firebaseConfigError && (
+        <p className="mb-4 rounded-lg bg-amber-100 p-3 text-amber-900">
+          {firebaseConfigError}
+        </p>
+      )}
       <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
         <input 
           className="border p-3 rounded-lg"
@@ -73,6 +86,7 @@ const SignUp = () => {
           autoComplete="new-password"
           value={formData.password}
           onChange={handleChange}
+          minLength={6}
           required
         />
         <button

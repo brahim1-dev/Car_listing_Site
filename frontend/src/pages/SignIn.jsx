@@ -1,9 +1,9 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { toast } from "react-toastify"
-import { useAppContext } from "../context/AppContext"
+import { useAppContext } from "../context/useAppContext"
 import OAuth from "../components/OAuth"
-
+import { firebaseConfigError, signInWithEmail } from "../firebase"
 
 const SignIn = () => {
   const [formData, setFormData] = useState({
@@ -24,23 +24,14 @@ const SignIn = () => {
     signInStart()
 
     try {
-      const response = await fetch("/api/auth/signin", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      })
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.message || "Could not sign in.")
-      }
-
-      signInSuccess(result.data)
-      toast.success(result.message || "Signed in successfully.")
+      const user = await signInWithEmail(formData.email, formData.password)
+      signInSuccess(user)
+      toast.success("Signed in successfully.")
       navigate("/profile")
-    } catch (requestError) {
-      signInFailure(requestError.message || "Could not sign in.")
-      toast.error(requestError.message || "Could not connect to the server.")
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Could not sign in."
+      signInFailure(message)
+      toast.error(message)
     } finally {
       setIsSubmitting(false)
     }
@@ -49,6 +40,11 @@ const SignIn = () => {
   return (
     <main className="max-w-lg mx-auto p-3">
       <h1 className="text-3xl text-center font-semibold my-7">Sign In</h1>
+      {firebaseConfigError && (
+        <p className="mb-4 rounded-lg bg-amber-100 p-3 text-amber-900">
+          {firebaseConfigError}
+        </p>
+      )}
       <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
         <input
           className="border p-3 rounded-lg"

@@ -1,7 +1,8 @@
 import {FaSearch } from "react-icons/fa"
 import { Link, useNavigate } from "react-router-dom"
 import { toast } from "react-toastify"
-import { useAppContext } from "../context/AppContext"
+import { useAppContext } from "../context/useAppContext"
+import { logOut } from "../firebase"
 
 const Header = () => {
   const { currentUser, signoutUserStart, signoutUserSuccess, signoutUserFailure, loading } = useAppContext()
@@ -10,19 +11,14 @@ const Header = () => {
   const handleSignOut = async () => {
     signoutUserStart()
     try {
-      const response = await fetch("/api/auth/signout", { method: "POST" })
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.message || "Could not sign out.")
-      }
-
+      await logOut()
       signoutUserSuccess()
-      toast.success(result.message || "Signed out successfully.")
+      toast.success("Signed out successfully.")
       navigate("/sign-in")
     } catch (error) {
-      signoutUserFailure(error.message)
-      toast.error(error.message || "Could not connect to the server.")
+      const message = error instanceof Error ? error.message : "Could not sign out."
+      signoutUserFailure(message)
+      toast.error(message)
     }
   }
 

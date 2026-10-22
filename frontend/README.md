@@ -1,24 +1,26 @@
-# React + Vite
+# Car Listing Site frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Firebase Authentication
 
-Currently, two official plugins are available:
+The frontend uses Firebase Authentication for email/password and Google
+sign-in. In the Firebase Console for the configured project:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+1. Enable **Email/Password** and **Google** under Authentication > Sign-in
+   method.
+2. Add your local and production website origins to Authentication > Settings >
+   Authorized domains.
+3. Set `VITE_FIREBASE_API_KEY` in `frontend/src/.env` using your Firebase Web
+   App API key:
 
-## React Compiler
+   ```env
+   VITE_FIREBASE_API_KEY=your-firebase-web-api-key
+   ```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+The existing Firebase project settings are used for the remaining web app
+configuration. If using a different Firebase project, set
+`VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`,
+`VITE_FIREBASE_STORAGE_BUCKET`, `VITE_FIREBASE_MESSAGING_SENDER_ID`, and
+`VITE_FIREBASE_APP_ID` in the same file.
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-
-## Google sign-in setup
-
-Create a Google OAuth 2.0 Web client ID in Google Cloud Console and add
-`http://localhost:5173` as an authorized JavaScript origin. Set that same client
-ID as `VITE_GOOGLE_CLIENT_ID` in `frontend/.env` and `GOOGLE_CLIENT_ID` in the
-project-root `.env`. Keep `JWT_SECRET` in the project-root `.env` as well.
-Restart both development servers after setting these values.
+Restart the frontend dev server after changing environment variables. Build the
+frontend with `npm run build` from this directory.
