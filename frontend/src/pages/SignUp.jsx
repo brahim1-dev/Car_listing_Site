@@ -38,7 +38,7 @@ const SignUp = () => {
       )
       signInSuccess(user)
       toast.success("Account created successfully.")
-      navigate("/profile")
+      navigate("/")
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Could not create your account."

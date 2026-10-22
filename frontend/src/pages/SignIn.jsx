@@ -27,7 +27,7 @@ const SignIn = () => {
       const user = await signInWithEmail(formData.email, formData.password)
       signInSuccess(user)
       toast.success("Signed in successfully.")
-      navigate("/profile")
+      navigate("/")
     } catch (error) {
       const message = error instanceof Error ? error.message : "Could not sign in."
       signInFailure(message)

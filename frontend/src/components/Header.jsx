@@ -1,4 +1,5 @@
-import {FaSearch } from "react-icons/fa"
+import { useState } from "react"
+import { FaSearch } from "react-icons/fa"
 import { Link, useNavigate } from "react-router-dom"
 import { toast } from "react-toastify"
 import { useAppContext } from "../context/useAppContext"
@@ -7,8 +8,13 @@ import { logOut } from "../firebase"
 const Header = () => {
   const { currentUser, signoutUserStart, signoutUserSuccess, signoutUserFailure, loading } = useAppContext()
   const navigate = useNavigate()
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const avatarLabel = (currentUser?.displayName || currentUser?.email || "User")
+    .charAt(0)
+    .toUpperCase()
 
   const handleSignOut = async () => {
+    setIsMenuOpen(false)
     signoutUserStart()
     try {
       await logOut()
@@ -43,22 +49,46 @@ const Header = () => {
           <Link className="hidden sm:inline text-slate-700 hover:underline" to="/">Home</Link>
           <Link className="text-slate-700 hover:underline" to="/about">About</Link>
           {currentUser ? (
-            <>
-              <Link className="text-slate-700 hover:underline" to="/profile">Profile</Link>
+            <li className="relative">
               <button
-                className="text-slate-700 hover:underline disabled:opacity-60"
+                className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-amber-700 text-sm font-semibold text-white hover:ring-2 hover:ring-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
                 type="button"
-                onClick={handleSignOut}
-                disabled={loading}
+                aria-label="Open account menu"
+                aria-expanded={isMenuOpen}
+                onClick={() => setIsMenuOpen((open) => !open)}
               >
-                {loading ? "Signing out..." : "Sign Out"}
+                {currentUser.photoURL ? (
+                  <img
+                    className="h-full w-full object-cover"
+                    src={currentUser.photoURL}
+                    alt=""
+                  />
+                ) : (
+                  avatarLabel
+                )}
               </button>
-            </>
+              {isMenuOpen && (
+                <div className="absolute right-0 top-10 z-10 min-w-36 rounded-lg bg-white py-1 shadow-lg">
+                  <Link
+                    className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
+                    to="/profile"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Profile
+                  </Link>
+                  <button
+                    className="block w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 disabled:opacity-60"
+                    type="button"
+                    onClick={handleSignOut}
+                    disabled={loading}
+                  >
+                    {loading ? "Signing out..." : "Sign Out"}
+                  </button>
+                </div>
+              )}
+            </li>
           ) : (
-            <>
-              <Link className="text-slate-700 hover:underline" to="/sign-in">Sign In</Link>
-              <Link className="text-slate-700 hover:underline" to="/sign-up">Sign Up</Link>
-            </>
+            <Link className="text-slate-700 hover:underline" to="/sign-in">Sign In</Link>
           )}
         </ul>
       </div>

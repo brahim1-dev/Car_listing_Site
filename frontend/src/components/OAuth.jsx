@@ -17,7 +17,7 @@ const OAuth = () => {
       const user = await signInWithGoogle();
       signInSuccess(user);
       toast.success("Signed in with Google.");
-      navigate("/profile");
+      navigate("/");
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Could not sign in with Google.";
