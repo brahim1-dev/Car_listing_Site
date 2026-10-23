@@ -13,6 +13,17 @@ Users can create, update, or delete car listings for sale or rent.
 Listings include detailed information such as make, model, year, condition, price, and images.
 Support for specifying additional details like mileage, fuel type, and location.
 Categorization of listings into “For Sale” or “For Rent.”
+Listings API endpoints:
+- `GET /api/listing` — browse up to 100 newest listings; optional `type`, `fuelType`, and `transmission` filters.
+- `GET /api/listing/:id` — get one public listing.
+- `GET /api/listing/mine` — list the authenticated user's listings.
+- `POST /api/listing` — create a listing for the authenticated user.
+- `PATCH /api/listing/:id` — update a listing owned by the authenticated user.
+- `DELETE /api/listing/:id` — delete a listing owned by the authenticated user.
+
+Send a Firebase ID token in `Authorization: Bearer <Firebase ID token>` for `/mine`, `POST`, `PATCH`, and `DELETE`.
+Create listing JSON fields: `name`, `description`, `make`, `year`, `price`, `mileage`, `fuelType` (`Petrol`, `Diesel`, `Electric`, `Hybrid`), `transmission` (`Automatic`, `Manual`, `CVT`), `condition` (`New`, `Used`, `Damaged`), `imageURLs` (non-empty array of HTTP(S) URLs), `location`, and `type` (`Sale`, `Rent`). `model` is optional. `offer` is optional and defaults to `false`.
+Authenticated image uploads request a signature from `POST /api/cloudinary/car-image-signature` before uploading directly to Cloudinary.
 Search & Browsing
 Potential buyers or renters can search for car listings.
 Filtering options by criteria such as price, location, car type, condition, and more.

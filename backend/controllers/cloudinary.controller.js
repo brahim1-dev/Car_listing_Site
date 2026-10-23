@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { errorHandle } from "../utils/error.js";
 
 const readCloudinaryConfig = () => {
@@ -78,6 +78,41 @@ export const createProfilePhotoSignature = async (req, res, next) => {
         folder,
         invalidate: true,
         overwrite: true,
+        publicId,
+        timestamp,
+        signature,
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const createCarImageSignature = async (req, res, next) => {
+  try {
+    const { apiKey, apiSecret, cloudName } = readCloudinaryConfig();
+    const folder = `car-listing-site/car-images/${req.firebaseUser.sub}`;
+    const publicId = `car_${randomUUID()}`;
+    const timestamp = await getCloudinaryTimestamp(cloudName);
+    const params = {
+      folder,
+      public_id: publicId,
+      timestamp: String(timestamp),
+    };
+    const signaturePayload = Object.entries(params)
+      .sort(([first], [second]) => first.localeCompare(second))
+      .map(([key, value]) => `${key}=${value}`)
+      .join("&");
+    const signature = createHash("sha1")
+      .update(`${signaturePayload}${apiSecret}`)
+      .digest("hex");
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        apiKey,
+        cloudName,
+        folder,
         publicId,
         timestamp,
         signature,

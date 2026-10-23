@@ -3,26 +3,26 @@ import { auth } from "./firebase";
 
 const maxImageSize = 5 * 1024 * 1024;
 
-export const uploadProfilePhoto = async (file) => {
+const uploadSignedImage = async (file, signatureEndpoint) => {
   if (!file.type.startsWith("image/")) {
-    throw new Error("Choose an image file to use as your profile photo.");
+    throw new Error("Choose a valid image file.");
   }
   if (file.size > maxImageSize) {
-    throw new Error("Profile photos must be 5 MB or smaller.");
+    throw new Error("Images must be 5 MB or smaller.");
   }
   if (!auth?.currentUser) {
-    throw new Error("You must be signed in to update your profile photo.");
+    throw new Error("You must be signed in to upload images.");
   }
 
   const idToken = await auth.currentUser.getIdToken();
-  const signatureResponse = await fetch("/api/cloudinary/profile-photo-signature", {
+  const signatureResponse = await fetch(signatureEndpoint, {
     method: "POST",
     headers: { Authorization: `Bearer ${idToken}` },
   });
   const signatureResult = await signatureResponse.json();
   if (!signatureResponse.ok) {
     throw new Error(
-      signatureResult.message || "Could not authorize the profile photo upload.",
+      signatureResult.message || "Could not authorize the image upload.",
     );
   }
 
@@ -40,8 +40,12 @@ export const uploadProfilePhoto = async (file) => {
   formData.append("file", file);
   formData.append("api_key", apiKey);
   formData.append("folder", folder);
-  formData.append("invalidate", String(invalidate));
-  formData.append("overwrite", String(overwrite));
+  if (invalidate !== undefined) {
+    formData.append("invalidate", String(invalidate));
+  }
+  if (overwrite !== undefined) {
+    formData.append("overwrite", String(overwrite));
+  }
   formData.append("public_id", publicId);
   formData.append("signature", signature);
   formData.append("timestamp", String(timestamp));
@@ -54,14 +58,25 @@ export const uploadProfilePhoto = async (file) => {
 
   if (!response.ok) {
     throw new Error(
-      result.error?.message || "Cloudinary could not upload the profile photo.",
+      result.error?.message || "Cloudinary could not upload the image.",
     );
   }
   if (!result.secure_url) {
     throw new Error("Cloudinary upload did not return a secure image URL.");
   }
 
+  return result.secure_url;
+};
+
+export const uploadProfilePhoto = async (file) => {
+  const secureUrl = await uploadSignedImage(
+    file,
+    "/api/cloudinary/profile-photo-signature",
+  );
   const user = auth.currentUser;
-  await updateProfile(user, { photoURL: result.secure_url });
+  await updateProfile(user, { photoURL: secureUrl });
   return user;
 };
+
+export const uploadCarImage = (file) =>
+  uploadSignedImage(file, "/api/cloudinary/car-image-signature");

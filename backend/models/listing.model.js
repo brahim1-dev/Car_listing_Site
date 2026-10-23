@@ -1,63 +1,87 @@
-import mongoose  from "mongoose";
+import mongoose from "mongoose";
 
 const carListingSchema = new mongoose.Schema({
-  name:{
-    type:String,
-    required:true //
+  name: {
+    type: String,
+    required: true,
+    trim: true,
   },
-  description:{
-    type:String,
-    required:true // Toyota, Nissan
+  description: {
+    type: String,
+    required: true,
+    trim: true,
   },
-  make:{
-    type:String,
-    required:true // Camry, RAV
+  make: {
+    type: String,
+    required: true,
+    trim: true,
   },
-  year:{
-    type:Number,
-    required:true //
+  model: {
+    type: String,
+    trim: true,
+    default: "",
   },
-  price:{
-    type:Number,
-    required:true //
+  year: {
+    type: Number,
+    required: true,
+    min: 1886,
+    max: new Date().getFullYear() + 1,
   },
-  offer:{
-    type:Boolean
+  price: {
+    type: Number,
+    required: true,
+    min: 0,
   },
-  mileage:{
-    type:Number,
-    required:true//150000
+  offer: {
+    type: Boolean,
+    default: false,
   },
-  fuelType:{
-    type:String,
-    required:true,
-    enum:["Petrol", "Diesel", "Electric", "Hyprid"]
+  mileage: {
+    type: Number,
+    required: true,
+    min: 0,
   },
-  transmission:{
-    type:String,
-    required:true,
-    enum:["Automatic", "Manual", "CVT"]
+  fuelType: {
+    type: String,
+    required: true,
+    enum: ["Petrol", "Diesel", "Electric", "Hybrid"],
   },
-  condition:{
-    type:String,
-    required:true,
-    enum:["New", "Used", "Damaged"]
+  transmission: {
+    type: String,
+    required: true,
+    enum: ["Automatic", "Manual", "CVT"],
   },
-  imageURLs:{
-    type:Array,
-    required:true,
+  condition: {
+    type: String,
+    required: true,
+    enum: ["New", "Used", "Damaged"],
   },
-  location:{
-    type:String,
-    required:true,
+  imageURLs: {
+    type: [{ type: String, trim: true }],
+    required: true,
+    validate: {
+      validator: (images) => images.length > 0,
+      message: "At least one car image is required.",
+    },
   },
-  type:{
-    type:String,
-    enum:["Sale","Rent" ]
+  location: {
+    type: String,
+    required: true,
+    trim: true,
   },
-},{
-  timestamps:true
-})
+  type: {
+    type: String,
+    required: true,
+    enum: ["Sale", "Rent"],
+  },
+  userId: {
+    type: String,
+    required: true,
+    index: true,
+  },
+}, {
+  timestamps: true,
+});
 
-const CarListing = mongoose.model("CarListing", carListingSchema )
-export default CarListing
+const CarListing = mongoose.model("CarListing", carListingSchema);
+export default CarListing;
