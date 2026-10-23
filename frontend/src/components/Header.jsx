@@ -30,20 +30,21 @@ const Header = () => {
 
   return (
     <header className="bg-slate-200 shadow-md">
-      <div className="flex justify-between items-center max-w-6xl mx-auto p-3" >
+      <div className="flex items-center justify-between gap-4 max-w-6xl mx-auto p-3">
         <Link to="/">
           <h1 className="font-bold text-sm sm:text-xl flex flex-wrap">
             <span className="text-slate-500">Iftiinshe</span>
             <span className="text-slate-700">Auto</span>
           </h1>
         </Link>
-        <form className="flex items-center bg-slate-100 rounded-lg p-3">
-          <input 
-            type="text" 
-            placeholder="Search..."
-            className="bg-transparent focus:outline-none w-24 ms:w-64"
+        <form className="flex min-w-0 max-w-[21.6rem] flex-1 items-center gap-3 rounded-full border border-slate-300/80 bg-white px-4 py-2.5 shadow-sm transition focus-within:border-slate-400 focus-within:ring-2 focus-within:ring-slate-300/70">
+          <input
+            type="search"
+            placeholder="Search cars..."
+            aria-label="Search cars"
+            className="min-w-0 flex-1 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none"
           />
-          <FaSearch className="text-slate-600" />
+          <FaSearch className="shrink-0 text-slate-500" aria-hidden="true" />
         </form>
         <ul className="flex gap-4">
           <Link className="hidden sm:inline text-slate-700 hover:underline" to="/">Home</Link>

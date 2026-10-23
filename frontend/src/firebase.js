@@ -1,11 +1,14 @@
 import { initializeApp } from "firebase/app";
 import {
   createUserWithEmailAndPassword,
+  deleteUser,
   getAuth,
   GoogleAuthProvider,
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
+  updateEmail,
+  updatePassword,
   updateProfile,
 } from "firebase/auth";
 
@@ -76,6 +79,32 @@ export const signInWithEmail = async (email, password) => {
     password,
   );
   return result.user;
+};
+
+export const updateAccount = async ({ displayName, email, password }) => {
+  const user = requireAuth().currentUser;
+  if (!user) {
+    throw new Error("You must be signed in to update your account.");
+  }
+
+  await updateProfile(user, { displayName });
+  if (email !== user.email) {
+    await updateEmail(user, email);
+  }
+  if (password) {
+    await updatePassword(user, password);
+  }
+
+  return user;
+};
+
+export const deleteAccount = async () => {
+  const user = requireAuth().currentUser;
+  if (!user) {
+    throw new Error("You must be signed in to delete your account.");
+  }
+
+  await deleteUser(user);
 };
 
 export const logOut = () => signOut(requireAuth());
