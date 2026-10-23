@@ -9,6 +9,7 @@ const editableFields = [
   "year",
   "price",
   "offer",
+  "discountPercent",
   "mileage",
   "fuelType",
   "transmission",
@@ -33,7 +34,7 @@ const validateListingData = (data, { partial = false } = {}) => {
   const missingFields = editableFields.filter(
     (field) =>
       !partial &&
-      !["offer", "model"].includes(field) &&
+      !["offer", "model", "discountPercent"].includes(field) &&
       (data[field] === undefined || data[field] === null || data[field] === ""),
   );
   if (missingFields.length) {
@@ -66,6 +67,21 @@ const validateListingData = (data, { partial = false } = {}) => {
   if (data.offer !== undefined && typeof data.offer !== "boolean") {
     return "offer must be a boolean.";
   }
+  if (
+    data.discountPercent !== undefined &&
+    (typeof data.discountPercent !== "number" ||
+      !Number.isInteger(data.discountPercent) ||
+      data.discountPercent < 0 ||
+      data.discountPercent > 99)
+  ) {
+    return "discountPercent must be a whole number from 0 to 99.";
+  }
+  if (data.offer === true && !(data.discountPercent >= 1 && data.discountPercent <= 99)) {
+    return "Enter a discount from 1% to 99% when an offer is enabled.";
+  }
+  if (data.offer === false && data.discountPercent > 0) {
+    return "Turn on Offer to apply a discount.";
+  }
 
   return null;
 };
@@ -85,8 +101,12 @@ export const createListing = async (req, res, next) => {
   }
 
   try {
+    const listingData = getListingData(req.body);
+    if (!listingData.offer) {
+      listingData.discountPercent = 0;
+    }
     const listing = await CarListing.create({
-      ...getListingData(req.body),
+      ...listingData,
       userId: req.firebaseUser.sub,
     });
 
@@ -161,6 +181,9 @@ export const updateListing = async (req, res, next) => {
   }
 
   const changes = getListingData(req.body);
+  if (changes.offer === false) {
+    changes.discountPercent = 0;
+  }
   if (!Object.keys(changes).length) {
     return sendValidationError(res, "Provide at least one listing field to update.");
   }

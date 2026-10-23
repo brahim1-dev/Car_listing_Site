@@ -22,7 +22,7 @@ Listings API endpoints:
 - `DELETE /api/listing/:id` — delete a listing owned by the authenticated user.
 
 Send a Firebase ID token in `Authorization: Bearer <Firebase ID token>` for `/mine`, `POST`, `PATCH`, and `DELETE`.
-Create listing JSON fields: `name`, `description`, `make`, `year`, `price`, `mileage`, `fuelType` (`Petrol`, `Diesel`, `Electric`, `Hybrid`), `transmission` (`Automatic`, `Manual`, `CVT`), `condition` (`New`, `Used`, `Damaged`), `imageURLs` (non-empty array of HTTP(S) URLs), `location`, and `type` (`Sale`, `Rent`). `model` is optional. `offer` is optional and defaults to `false`.
+Create listing JSON fields: `name`, `description`, `make`, `year`, `price`, `mileage`, `fuelType` (`Petrol`, `Diesel`, `Electric`, `Hybrid`), `transmission` (`Automatic`, `Manual`, `CVT`), `condition` (`New`, `Used`, `Damaged`), `imageURLs` (non-empty array of HTTP(S) URLs), `location`, and `type` (`Sale`, `Rent`). `model` is optional. `offer` is optional and defaults to `false`; when it is `true`, provide an integer `discountPercent` from 1 to 99. Rent prices are shown per month, and offer prices are calculated from the regular price and discount percentage.
 Authenticated image uploads request a signature from `POST /api/cloudinary/car-image-signature` before uploading directly to Cloudinary.
 Search & Browsing
 Potential buyers or renters can search for car listings.

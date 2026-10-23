@@ -332,6 +332,30 @@ body{
   line-height: 1.4;
 }
 
+.car-listing-discount-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.car-listing-discount-row > span {
+  min-width: 92px;
+  color: #a65b50;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.car-listing-price-preview {
+  margin: -4px 0 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.car-listing-price-preview strong {
+  color: #15803d;
+}
+
 .car-listing-media {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -513,5 +537,260 @@ body{
   .car-listing-submit,
   .car-listing-signin-note {
     grid-column: 1;
+  }
+}
+
+.marketplace-page {
+  min-height: calc(100vh - 56px);
+  background: #f8fafc;
+  padding-bottom: 56px;
+}
+
+.marketplace-hero {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 85% 15%, rgb(245 158 11 / 20%), transparent 35%),
+    linear-gradient(120deg, #172337, #34445c);
+  padding: 54px 20px 58px;
+  color: white;
+  text-align: center;
+}
+
+.marketplace-eyebrow {
+  margin: 0 0 8px;
+  color: #b77935;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.marketplace-hero .marketplace-eyebrow {
+  color: #fbbf75;
+}
+
+.marketplace-hero h1 {
+  margin: 0 auto;
+  max-width: 680px;
+  font-size: clamp(30px, 5vw, 48px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.marketplace-hero > p:not(.marketplace-eyebrow) {
+  margin: 14px 0 24px;
+  color: #d5dce6;
+  font-size: 15px;
+}
+
+.marketplace-create-link,
+.marketplace-empty a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #c27a38;
+  padding: 11px 18px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 150ms ease;
+}
+
+.marketplace-create-link:hover,
+.marketplace-empty a:hover {
+  background: #a75f27;
+}
+
+.marketplace-listings {
+  width: min(1120px, calc(100% - 40px));
+  margin: 0 auto;
+  padding-top: 38px;
+}
+
+.marketplace-section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.marketplace-section-heading h2 {
+  margin: 0;
+  color: #1e293b;
+  font-size: 25px;
+  font-weight: 700;
+}
+
+.marketplace-section-heading > span {
+  padding-bottom: 3px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.marketplace-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.marketplace-card {
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 5px 18px rgb(15 23 42 / 5%);
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.marketplace-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px rgb(15 23 42 / 10%);
+}
+
+.marketplace-card-image {
+  position: relative;
+  height: 190px;
+  background: #e2e8f0;
+}
+
+.marketplace-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.marketplace-no-image {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.marketplace-type-badge,
+.marketplace-offer-badge {
+  position: absolute;
+  top: 12px;
+  border-radius: 999px;
+  padding: 5px 9px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.marketplace-type-badge {
+  left: 12px;
+  background: rgb(15 23 42 / 80%);
+  color: white;
+}
+
+.marketplace-offer-badge {
+  right: 12px;
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.marketplace-card-content {
+  padding: 15px;
+}
+
+.marketplace-card-content h3 {
+  overflow: hidden;
+  margin: 0;
+  color: #1e293b;
+  font-size: 17px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.marketplace-car-spec {
+  margin: 5px 0 16px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.marketplace-card-footer {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 8px;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 12px;
+}
+
+.marketplace-price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.marketplace-price del {
+  width: 100%;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.marketplace-price strong {
+  color: #1e293b;
+  font-size: 18px;
+}
+
+.marketplace-price > span {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.marketplace-location {
+  overflow: hidden;
+  color: #64748b;
+  font-size: 12px;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.marketplace-message,
+.marketplace-empty {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: white;
+  padding: 30px 20px;
+  color: #64748b;
+  text-align: center;
+}
+
+.marketplace-error {
+  color: #b91c1c;
+}
+
+.marketplace-empty h3 {
+  margin: 0;
+  color: #1e293b;
+  font-size: 18px;
+}
+
+.marketplace-empty p {
+  margin: 8px 0 18px;
+  font-size: 14px;
+}
+
+@media (max-width: 480px) {
+  .marketplace-hero {
+    padding: 42px 18px;
+  }
+
+  .marketplace-listings {
+    width: calc(100% - 28px);
+    padding-top: 28px;
+  }
+
+  .marketplace-grid {
+    grid-template-columns: 1fr;
   }
 }

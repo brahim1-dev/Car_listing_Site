@@ -36,6 +36,12 @@ const carListingSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  discountPercent: {
+    type: Number,
+    min: 0,
+    max: 99,
+    default: 0,
+  },
   mileage: {
     type: Number,
     required: true,

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { toast } from "react-toastify"
 import { auth } from "../firebase"
@@ -17,24 +17,68 @@ const initialForm = {
   location: "",
   type: "Sale",
   offer: false,
+  discountPercent: "",
   price: "",
+}
+
+const listingDraftKey = "car-listing-draft"
+
+const loadListingDraft = () => {
+  try {
+    const savedDraft = localStorage.getItem(listingDraftKey)
+    if (!savedDraft) return null
+
+    const draft = JSON.parse(savedDraft)
+    if (
+      !draft ||
+      typeof draft.formData !== "object" ||
+      Array.isArray(draft.formData) ||
+      !Array.isArray(draft.imageURLs) ||
+      draft.imageURLs.some((url) => typeof url !== "string")
+    ) {
+      throw new Error("Saved listing draft has an invalid format.")
+    }
+
+    return {
+      formData: { ...initialForm, ...draft.formData },
+      imageURLs: draft.imageURLs,
+    }
+  } catch (error) {
+    console.error("Could not restore saved car listing draft:", error)
+    toast.error("Could not restore your saved listing draft.")
+    return null
+  }
 }
 
 const CarListing = () => {
   const navigate = useNavigate()
   const fileInputRef = useRef(null)
-  const [formData, setFormData] = useState(initialForm)
-  const [imageURLs, setImageURLs] = useState([])
+  const [savedDraft] = useState(loadListingDraft)
+  const [formData, setFormData] = useState(savedDraft?.formData ?? initialForm)
+  const [imageURLs, setImageURLs] = useState(savedDraft?.imageURLs ?? [])
   const [selectedFiles, setSelectedFiles] = useState([])
   const [isUploading, setIsUploading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const isBusy = isUploading || isSubmitting
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        listingDraftKey,
+        JSON.stringify({ formData, imageURLs }),
+      )
+    } catch (error) {
+      console.error("Could not save car listing draft:", error)
+      toast.error("Your listing draft could not be saved on this device.")
+    }
+  }, [formData, imageURLs])
 
   const handleChange = (event) => {
     const { id, value, checked, type } = event.target
     setFormData((data) => ({
       ...data,
       [id]: type === "checkbox" ? checked : value,
+      ...(id === "offer" && !checked ? { discountPercent: "" } : {}),
     }))
   }
 
@@ -116,6 +160,9 @@ const CarListing = () => {
           year: Number(formData.year),
           mileage: Number(formData.mileage),
           price: Number(formData.price),
+          discountPercent: formData.offer
+            ? Number(formData.discountPercent)
+            : 0,
           imageURLs,
         }),
       })
@@ -124,6 +171,12 @@ const CarListing = () => {
         throw new Error(result.message || "Could not create the car listing.")
       }
 
+      try {
+        localStorage.removeItem(listingDraftKey)
+      } catch (error) {
+        console.error("Could not clear saved car listing draft:", error)
+        toast.error("Listing created, but the saved draft could not be cleared.")
+      }
       toast.success("Your car listing has been created.")
       setFormData(initialForm)
       setImageURLs([])
@@ -300,6 +353,42 @@ const CarListing = () => {
               />
               <span>{formData.type === "Rent" ? "Price / Month" : "Regular Price"}</span>
             </div>
+            {formData.offer && (
+              <>
+                <label className="sr-only" htmlFor="discountPercent">
+                  Discount percentage
+                </label>
+                <div className="car-listing-discount-row">
+                  <input
+                    className="car-listing-input"
+                    id="discountPercent"
+                    type="number"
+                    placeholder="Discount percentage"
+                    min="1"
+                    max="99"
+                    step="1"
+                    value={formData.discountPercent}
+                    onChange={handleChange}
+                    required
+                  />
+                  <span>% off</span>
+                </div>
+                {Number(formData.price) > 0 &&
+                  Number(formData.discountPercent) >= 1 &&
+                  Number(formData.discountPercent) <= 99 && (
+                    <p className="car-listing-price-preview">
+                      Discounted price:{" "}
+                      <strong>
+                        {(
+                          Number(formData.price) *
+                          (1 - Number(formData.discountPercent) / 100)
+                        ).toLocaleString()}
+                        {formData.type === "Rent" ? " /month" : ""}
+                      </strong>
+                    </p>
+                  )}
+              </>
+            )}
           </div>
 
           <div className="car-listing-media">
