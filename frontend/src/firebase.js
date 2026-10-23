@@ -2,6 +2,7 @@ import { initializeApp } from "firebase/app";
 import {
   createUserWithEmailAndPassword,
   deleteUser,
+  getAdditionalUserInfo,
   getAuth,
   GoogleAuthProvider,
   signInWithEmailAndPassword,
@@ -55,12 +56,24 @@ const requireAuth = () => {
   return auth;
 };
 
-export const signUpWithGoogle = async () => {
+const authenticateWithGoogle = async (allowSignUp) => {
   const result = await signInWithPopup(requireAuth(), googleProvider);
+
+  if (!allowSignUp && getAdditionalUserInfo(result)?.isNewUser) {
+    try {
+      await deleteUser(result.user);
+    } finally {
+      await signOut(requireAuth());
+    }
+
+    throw new Error("No account exists for this Google account. Please sign up first.");
+  }
+
   return result.user;
 };
 
-export const signInWithGoogle = signUpWithGoogle;
+export const signUpWithGoogle = () => authenticateWithGoogle(true);
+export const signInWithGoogle = () => authenticateWithGoogle(false);
 
 export const signUpWithEmail = async (username, email, password) => {
   const result = await createUserWithEmailAndPassword(
@@ -105,6 +118,7 @@ export const deleteAccount = async () => {
   }
 
   await deleteUser(user);
+  await signOut(requireAuth());
 };
 
 export const logOut = () => signOut(requireAuth());

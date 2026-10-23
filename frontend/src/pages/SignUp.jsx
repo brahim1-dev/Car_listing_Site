@@ -102,7 +102,7 @@ const SignUp = () => {
         <span className="text-slate-500">OR</span>
         <hr className="flex-1 border-slate-300" />
       </div>
-      <OAuth />
+      <OAuth mode="signup" />
       <div className="flex gap-2 mt-5">
         <p>Have an account?</p>
         <Link className="text-blue-700 hover:underline" to="/sign-in">

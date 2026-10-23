@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { signInWithGoogle } from "../firebase";
+import { signInWithGoogle, signUpWithGoogle } from "../firebase";
 import { useAppContext } from "../context/useAppContext";
 
-const OAuth = () => {
+const OAuth = ({ mode = "signin" }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const { signInStart, signInSuccess, signInFailure } = useAppContext();
@@ -14,13 +14,22 @@ const OAuth = () => {
     signInStart();
 
     try {
-      const user = await signInWithGoogle();
+      const user =
+        mode === "signup"
+          ? await signUpWithGoogle()
+          : await signInWithGoogle();
       signInSuccess(user);
-      toast.success("Signed in with Google.");
+      toast.success(
+        mode === "signup" ? "Account created with Google." : "Signed in with Google.",
+      );
       navigate("/");
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Could not sign in with Google.";
+        error instanceof Error
+          ? error.message
+          : mode === "signup"
+            ? "Could not create an account with Google."
+            : "Could not sign in with Google.";
       signInFailure(message);
       toast.error(message);
     } finally {
@@ -35,7 +44,11 @@ const OAuth = () => {
       onClick={handleGoogleSignIn}
       disabled={isSubmitting}
     >
-      {isSubmitting ? "Connecting to Google..." : "Continue with Google"}
+      {isSubmitting
+        ? "Connecting to Google..."
+        : mode === "signup"
+          ? "Sign up with Google"
+          : "Continue with Google"}
     </button>
   );
 };
