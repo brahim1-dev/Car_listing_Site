@@ -337,14 +337,17 @@ const CarListing = () => {
                 {imageURLs.map((url, index) => (
                   <div className="car-listing-preview" key={url}>
                     <img src={url} alt={`Car listing ${index + 1}`} />
-                    {index === 0 && <span>Cover</span>}
+                    <div className="car-listing-preview-info">
+                      {index === 0 && <span>Cover image</span>}
+                      <span>Image {index + 1}</span>
+                    </div>
                     <button
                       type="button"
-                      aria-label={`Remove image ${index + 1}`}
+                      aria-label={`Delete image ${index + 1}`}
                       onClick={() => removeImage(index)}
                       disabled={isBusy}
                     >
-                      ×
+                      Delete
                     </button>
                   </div>
                 ))}

@@ -401,51 +401,62 @@ body{
 
 .car-listing-previews {
   grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-  gap: 9px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #d5d8dc;
+  border-radius: 5px;
+  overflow: hidden;
 }
 
 .car-listing-preview {
-  position: relative;
-  aspect-ratio: 1;
-  overflow: hidden;
-  border-radius: 7px;
-  background: #cbd5e1;
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr) auto;
+  min-height: 96px;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid #d5d8dc;
+  padding: 10px;
+}
+
+.car-listing-preview:last-child {
+  border-bottom: 0;
 }
 
 .car-listing-preview img {
   width: 100%;
-  height: 100%;
+  height: 58px;
+  border-radius: 3px;
+  background: #cbd5e1;
   object-fit: cover;
 }
 
-.car-listing-preview > span {
-  position: absolute;
-  bottom: 5px;
-  left: 5px;
-  border-radius: 4px;
-  background: rgb(15 23 42 / 80%);
-  padding: 3px 6px;
-  color: white;
-  font-size: 10px;
+.car-listing-preview-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: #64748b;
+  font-size: 12px;
 }
 
 .car-listing-preview > button {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  display: grid;
-  width: 23px;
-  height: 23px;
-  place-items: center;
   border: 0;
-  border-radius: 50%;
-  background: rgb(15 23 42 / 80%);
-  color: white;
-  font-size: 17px;
-  line-height: 1;
+  background: transparent;
+  padding: 8px 10px;
+  color: #a65b50;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
   cursor: pointer;
+}
+
+.car-listing-preview > button:hover:not(:disabled) {
+  color: #873d34;
+  text-decoration: underline;
+}
+
+.car-listing-preview > button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .car-listing-submit {
