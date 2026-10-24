@@ -3,7 +3,11 @@ import { Link, useNavigate } from "react-router-dom"
 import { toast } from "react-toastify"
 import { useAppContext } from "../context/useAppContext"
 import OAuth from "../components/OAuth"
-import { firebaseConfigError, signInWithEmail } from "../firebase"
+import {
+  firebaseConfigError,
+  logOut,
+  signInWithEmail,
+} from "../firebase"
 
 const SignIn = () => {
   const [formData, setFormData] = useState({
@@ -12,7 +16,13 @@ const SignIn = () => {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const navigate = useNavigate()
-  const { signInStart, signInSuccess, signInFailure } = useAppContext()
+  const {
+    currentUser,
+    signInStart,
+    signInSuccess,
+    signInFailure,
+    signoutUserSuccess,
+  } = useAppContext()
 
   const handleChange = (event) => {
     setFormData({ ...formData, [event.target.id]: event.target.value })
@@ -29,7 +39,16 @@ const SignIn = () => {
       toast.success("Signed in successfully.")
       navigate("/")
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Could not sign in."
+      const message = [
+        "auth/invalid-credential",
+        "auth/invalid-login-credentials",
+        "auth/wrong-password",
+        "auth/user-not-found",
+      ].includes(error?.code)
+        ? "Email or password is incorrect. If you are trying another account, sign out of the current account first."
+        : error instanceof Error
+          ? error.message
+          : "Could not sign in."
       signInFailure(message)
       toast.error(message)
     } finally {
@@ -40,6 +59,32 @@ const SignIn = () => {
   return (
     <main className="max-w-lg mx-auto p-3">
       <h1 className="text-3xl text-center font-semibold my-7">Sign In</h1>
+      {currentUser && (
+        <div className="mb-4 rounded-lg bg-blue-50 p-3 text-sm text-blue-900">
+          <p>
+            You are currently signed in as{" "}
+            <strong>{currentUser.email || currentUser.displayName || "this account"}</strong>.
+            A failed sign-in keeps this account active.
+          </p>
+          <button
+            className="mt-2 font-semibold underline"
+            type="button"
+            onClick={async () => {
+              try {
+                await logOut()
+                signoutUserSuccess()
+                toast.success("Signed out. You can now sign in to another account.")
+              } catch (error) {
+                const message =
+                  error instanceof Error ? error.message : "Could not sign out."
+                toast.error(message)
+              }
+            }}
+          >
+            Sign out to switch accounts
+          </button>
+        </div>
+      )}
       {firebaseConfigError && (
         <p className="mb-4 rounded-lg bg-amber-100 p-3 text-amber-900">
           {firebaseConfigError}

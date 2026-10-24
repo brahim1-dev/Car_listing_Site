@@ -85,6 +85,16 @@ const carListingSchema = new mongoose.Schema({
     required: true,
     index: true,
   },
+  sellerName: {
+    type: String,
+    trim: true,
+    default: "",
+  },
+  sellerEmail: {
+    type: String,
+    trim: true,
+    select: false,
+  },
 }, {
   timestamps: true,
 });

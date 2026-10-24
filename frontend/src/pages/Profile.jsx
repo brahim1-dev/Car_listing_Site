@@ -1,8 +1,8 @@
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { FaCamera } from "react-icons/fa"
 import { toast } from "react-toastify"
-import { deleteAccount, logOut, updateAccount } from "../firebase"
+import { auth, deleteAccount, logOut, updateAccount } from "../firebase"
 import { uploadProfilePhoto } from "../cloudinary"
 import { useAppContext } from "../context/useAppContext"
 
@@ -19,12 +19,66 @@ const Profile = () => {
   const [isUpdating, setIsUpdating] = useState(false)
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [deletingListingId, setDeletingListingId] = useState("")
   const [isSigningOut, setIsSigningOut] = useState(false)
+  const [listings, setListings] = useState([])
+  const [areListingsLoading, setAreListingsLoading] = useState(true)
+  const [listingsError, setListingsError] = useState("")
+  const [contactSyncError, setContactSyncError] = useState("")
   const [photoInputKey, setPhotoInputKey] = useState(0)
   const avatarLabel = (formData.username || formData.email || "User")
     .charAt(0)
     .toUpperCase()
   const isBusy = isUpdating || isUploadingPhoto || isDeleting || isSigningOut
+
+  useEffect(() => {
+    let isCurrent = true
+
+    const loadListings = async () => {
+      try {
+        const idToken = await auth.currentUser.getIdToken(true)
+        try {
+          const syncResponse = await fetch("/api/listing/mine/contact", {
+            method: "PATCH",
+            headers: { Authorization: `Bearer ${idToken}` },
+          })
+          const syncResult = await syncResponse.json()
+          if (!syncResponse.ok) {
+            throw new Error(syncResult.message || "Could not enable listing contact.")
+          }
+          if (isCurrent) setContactSyncError("")
+        } catch (syncError) {
+          if (!isCurrent) return
+          setContactSyncError(
+            syncError instanceof Error
+              ? syncError.message
+              : "Could not enable listing contact.",
+          )
+        }
+
+        const response = await fetch("/api/listing/mine", {
+          headers: { Authorization: `Bearer ${idToken}` },
+        })
+        const result = await response.json()
+        if (!response.ok) {
+          throw new Error(result.message || "Could not load your listings.")
+        }
+        if (isCurrent) setListings(result.data)
+      } catch (error) {
+        if (!isCurrent) return
+        setListingsError(
+          error instanceof Error ? error.message : "Could not load your listings.",
+        )
+      } finally {
+        if (isCurrent) setAreListingsLoading(false)
+      }
+    }
+
+    loadListings()
+    return () => {
+      isCurrent = false
+    }
+  }, [])
 
   const handleChange = (event) => {
     setFormData((data) => ({ ...data, [event.target.id]: event.target.value }))
@@ -117,6 +171,34 @@ const Profile = () => {
       toast.error(message)
     } finally {
       setIsSigningOut(false)
+    }
+  }
+
+  const handleDeleteListing = async (listing) => {
+    if (!window.confirm(`Delete your "${listing.name}" listing?`)) return
+
+    setDeletingListingId(listing.id)
+    try {
+      const idToken = await auth.currentUser.getIdToken()
+      const response = await fetch(`/api/listing/${encodeURIComponent(listing.id)}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${idToken}` },
+      })
+      const result = await response.json()
+      if (!response.ok) {
+        throw new Error(result.message || "Could not delete this listing.")
+      }
+
+      setListings((currentListings) =>
+        currentListings.filter((item) => item.id !== listing.id),
+      )
+      toast.success("Your listing has been deleted.")
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Could not delete this listing.",
+      )
+    } finally {
+      setDeletingListingId("")
     }
   }
 
@@ -213,6 +295,9 @@ const Profile = () => {
           >
             {isDeleting ? "Deleting account..." : "Delete account"}
           </button>
+          <a className="profile-listings-link" href="#your-listings">
+            Show Listings
+          </a>
           <button
             className="profile-action-signout"
             type="button"
@@ -222,6 +307,64 @@ const Profile = () => {
             {isSigningOut ? "Signing out..." : "Sign out"}
           </button>
         </div>
+
+        <section className="profile-listings" id="your-listings">
+          <h2>Your Listings</h2>
+          {contactSyncError && (
+            <p className="profile-listings-message profile-listings-error" role="alert">
+              {contactSyncError}
+            </p>
+          )}
+          {areListingsLoading ? (
+            <p className="profile-listings-message">Loading your listings...</p>
+          ) : listingsError ? (
+            <p className="profile-listings-message profile-listings-error">
+              {listingsError}
+            </p>
+          ) : listings.length === 0 ? (
+            <p className="profile-listings-message">
+              You have not created any car listings yet.
+            </p>
+          ) : (
+            <ul className="profile-listings-list">
+              {listings.map((listing) => (
+                <li className="profile-listing-row" key={listing.id}>
+                  {listing.imageURLs?.[0] ? (
+                    <img src={listing.imageURLs[0]} alt="" loading="lazy" />
+                  ) : (
+                    <span className="profile-listing-no-image">No photo</span>
+                  )}
+                  <div className="profile-listing-details">
+                    <strong>{listing.name}</strong>
+                    <span>
+                      {listing.type === "Rent" ? "For rent" : "For sale"} ·{" "}
+                      {Number(listing.price).toLocaleString()}
+                      {listing.type === "Rent" ? " /month" : ""}
+                    </span>
+                  </div>
+                  <div className="profile-listing-actions">
+                    <button
+                      className="profile-listing-edit"
+                      type="button"
+                      onClick={() => navigate(`/edit-listing/${listing.id}`)}
+                      disabled={isBusy || Boolean(deletingListingId)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="profile-listing-delete"
+                      type="button"
+                      onClick={() => handleDeleteListing(listing)}
+                      disabled={isBusy || Boolean(deletingListingId)}
+                    >
+                      {deletingListingId === listing.id ? "Deleting..." : "Delete"}
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
       </section>
     </main>
   )

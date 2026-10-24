@@ -9,9 +9,17 @@ const Header = () => {
   const { currentUser, signoutUserStart, signoutUserSuccess, signoutUserFailure, loading } = useAppContext()
   const navigate = useNavigate()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState("")
   const avatarLabel = (currentUser?.displayName || currentUser?.email || "User")
     .charAt(0)
     .toUpperCase()
+
+  const handleSearch = (event) => {
+    event.preventDefault()
+    const params = new URLSearchParams()
+    if (searchTerm.trim()) params.set("q", searchTerm.trim())
+    navigate(`/search${params.size ? `?${params.toString()}` : ""}`)
+  }
 
   const handleSignOut = async () => {
     setIsMenuOpen(false)
@@ -37,14 +45,26 @@ const Header = () => {
             <span className="text-slate-700">Auto</span>
           </h1>
         </Link>
-        <form className="flex min-w-0 max-w-[21.6rem] flex-1 items-center gap-3 rounded-full border border-slate-300/80 bg-white px-4 py-2.5 shadow-sm transition focus-within:border-slate-400 focus-within:ring-2 focus-within:ring-slate-300/70">
+        <form
+          className="flex min-w-0 max-w-[21.6rem] flex-1 items-center gap-3 rounded-full border border-slate-300/80 bg-white px-4 py-2.5 shadow-sm transition focus-within:border-slate-400 focus-within:ring-2 focus-within:ring-slate-300/70"
+          onSubmit={handleSearch}
+          role="search"
+        >
           <input
             type="search"
             placeholder="Search cars..."
             aria-label="Search cars"
             className="min-w-0 flex-1 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none"
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
           />
-          <FaSearch className="shrink-0 text-slate-500" aria-hidden="true" />
+          <button
+            className="shrink-0 text-slate-500 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400"
+            type="submit"
+            aria-label="Search listings"
+          >
+            <FaSearch aria-hidden="true" />
+          </button>
         </form>
         <ul className="flex gap-4">
           <Link className="hidden sm:inline text-slate-700 hover:underline" to="/">Home</Link>

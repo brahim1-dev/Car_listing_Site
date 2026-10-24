@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useNavigate, useParams } from "react-router-dom"
 import { toast } from "react-toastify"
 import { auth } from "../firebase"
 import { uploadCarImage } from "../cloudinary"
@@ -23,9 +23,26 @@ const initialForm = {
 
 const listingDraftKey = "car-listing-draft"
 
-const loadListingDraft = () => {
+const getListingFormData = (listing) => ({
+  name: listing.name ?? "",
+  description: listing.description ?? "",
+  make: listing.make ?? "",
+  model: listing.model ?? "",
+  year: String(listing.year ?? ""),
+  mileage: String(listing.mileage ?? ""),
+  fuelType: listing.fuelType ?? initialForm.fuelType,
+  transmission: listing.transmission ?? initialForm.transmission,
+  condition: listing.condition ?? initialForm.condition,
+  location: listing.location ?? "",
+  type: listing.type ?? initialForm.type,
+  offer: Boolean(listing.offer),
+  discountPercent: listing.offer ? String(listing.discountPercent ?? "") : "",
+  price: String(listing.price ?? ""),
+})
+
+const loadListingDraft = (draftKey) => {
   try {
-    const savedDraft = localStorage.getItem(listingDraftKey)
+    const savedDraft = localStorage.getItem(draftKey)
     if (!savedDraft) return null
 
     const draft = JSON.parse(savedDraft)
@@ -52,26 +69,78 @@ const loadListingDraft = () => {
 
 const CarListing = () => {
   const navigate = useNavigate()
+  const { listingId } = useParams()
+  const isEditing = Boolean(listingId)
+  const draftKey = isEditing ? `${listingDraftKey}:${listingId}` : listingDraftKey
   const fileInputRef = useRef(null)
-  const [savedDraft] = useState(loadListingDraft)
+  const [savedDraft] = useState(() => loadListingDraft(draftKey))
   const [formData, setFormData] = useState(savedDraft?.formData ?? initialForm)
   const [imageURLs, setImageURLs] = useState(savedDraft?.imageURLs ?? [])
   const [selectedFiles, setSelectedFiles] = useState([])
+  const [isLoadingListing, setIsLoadingListing] = useState(isEditing)
+  const [listingLoadError, setListingLoadError] = useState("")
+  const [isListingLoaded, setIsListingLoaded] = useState(!isEditing)
   const [isUploading, setIsUploading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const isBusy = isUploading || isSubmitting
 
   useEffect(() => {
+    if (!isEditing) return undefined
+
+    let isCurrent = true
+    const loadListing = async () => {
+      try {
+        const idToken = await auth.currentUser.getIdToken(true)
+        const response = await fetch("/api/listing/mine", {
+          headers: { Authorization: `Bearer ${idToken}` },
+        })
+        const result = await response.json()
+        if (!response.ok) {
+          throw new Error(result.message || "Could not load this listing.")
+        }
+
+        const listing = result.data.find((item) => item.id === listingId)
+        if (!listing) {
+          throw new Error("This listing is unavailable or does not belong to your account.")
+        }
+
+        if (isCurrent) {
+          if (!savedDraft) {
+            setFormData(getListingFormData(listing))
+            setImageURLs(listing.imageURLs)
+          }
+          setIsListingLoaded(true)
+        }
+      } catch (error) {
+        if (isCurrent) {
+          setListingLoadError(
+            error instanceof Error ? error.message : "Could not load this listing.",
+          )
+        }
+      } finally {
+        if (isCurrent) setIsLoadingListing(false)
+      }
+    }
+
+    loadListing()
+    return () => {
+      isCurrent = false
+    }
+  }, [isEditing, listingId, savedDraft])
+
+  useEffect(() => {
+    if (!isListingLoaded) return
+
     try {
       localStorage.setItem(
-        listingDraftKey,
+        draftKey,
         JSON.stringify({ formData, imageURLs }),
       )
     } catch (error) {
       console.error("Could not save car listing draft:", error)
       toast.error("Your listing draft could not be saved on this device.")
     }
-  }, [formData, imageURLs])
+  }, [draftKey, formData, imageURLs, isListingLoaded])
 
   const handleChange = (event) => {
     const { id, value, checked, type } = event.target
@@ -148,40 +217,42 @@ const CarListing = () => {
 
     setIsSubmitting(true)
     try {
-      const idToken = await auth.currentUser.getIdToken()
-      const response = await fetch("/api/listing", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
+      const idToken = await auth.currentUser.getIdToken(true)
+      const response = await fetch(
+        isEditing ? `/api/listing/${encodeURIComponent(listingId)}` : "/api/listing",
+        {
+          method: isEditing ? "PATCH" : "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${idToken}`,
+          },
+          body: JSON.stringify({
+            ...formData,
+            year: Number(formData.year),
+            mileage: Number(formData.mileage),
+            price: Number(formData.price),
+            discountPercent: formData.offer
+              ? Number(formData.discountPercent)
+              : 0,
+            imageURLs,
+          }),
         },
-        body: JSON.stringify({
-          ...formData,
-          year: Number(formData.year),
-          mileage: Number(formData.mileage),
-          price: Number(formData.price),
-          discountPercent: formData.offer
-            ? Number(formData.discountPercent)
-            : 0,
-          imageURLs,
-        }),
-      })
+      )
       const result = await response.json()
       if (!response.ok) {
         throw new Error(result.message || "Could not create the car listing.")
       }
 
       try {
-        localStorage.removeItem(listingDraftKey)
+        localStorage.removeItem(draftKey)
       } catch (error) {
         console.error("Could not clear saved car listing draft:", error)
-        toast.error("Listing created, but the saved draft could not be cleared.")
+        toast.error("Listing saved, but the saved draft could not be cleared.")
       }
-      toast.success("Your car listing has been created.")
-      setFormData(initialForm)
-      setImageURLs([])
-      setSelectedFiles([])
-      navigate("/")
+      toast.success(
+        isEditing ? "Your car listing has been updated." : "Your car listing has been created.",
+      )
+      navigate(isEditing ? "/profile" : "/")
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Could not create the car listing.",
@@ -191,13 +262,36 @@ const CarListing = () => {
     }
   }
 
+  if (isLoadingListing) {
+    return (
+      <main className="car-listing-page">
+        <p className="car-listing-load-message">Loading your listing...</p>
+      </main>
+    )
+  }
+
+  if (listingLoadError) {
+    return (
+      <main className="car-listing-page">
+        <section className="car-listing-load-message">
+          <p>{listingLoadError}</p>
+          <Link to="/profile">Back to profile</Link>
+        </section>
+      </main>
+    )
+  }
+
   return (
     <main className="car-listing-page">
       <section className="car-listing-content">
         <header className="car-listing-heading">
           <p className="car-listing-eyebrow">Sell or rent your vehicle</p>
-          <h1>Car Listing</h1>
-          <p>Add your car details and photos to publish a listing.</p>
+          <h1>{isEditing ? "Edit Car Listing" : "Car Listing"}</h1>
+          <p>
+            {isEditing
+              ? "Update your car details and photos."
+              : "Add your car details and photos to publish a listing."}
+          </p>
         </header>
 
         <form className="car-listing-form" onSubmit={handleSubmit}>
@@ -448,7 +542,13 @@ const CarListing = () => {
               type="submit"
               disabled={isBusy}
             >
-              {isSubmitting ? "Creating listing..." : "Create Listing"}
+              {isSubmitting
+                ? isEditing
+                  ? "Saving changes..."
+                  : "Creating listing..."
+                : isEditing
+                  ? "Save Changes"
+                  : "Create Listing"}
             </button>
             <p className="car-listing-signin-note">
               Your listing will be published under your account.{" "}
