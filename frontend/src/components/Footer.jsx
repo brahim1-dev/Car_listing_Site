@@ -7,7 +7,7 @@ const Footer = () => (
       <div className="site-footer-brand">
         <Link className="site-footer-logo" to="/">
           <FaCarSide aria-hidden="true" />
-          <span>IftiinsheAuto</span>
+          <span>SuuroCars</span>
         </Link>
         <p>
           Browse local cars for sale and rent, and connect with the people who
@@ -27,7 +27,7 @@ const Footer = () => (
       </nav>
     </div>
     <div className="site-footer-bottom">
-      <span>© {new Date().getFullYear()} IftiinsheAuto</span>
+      <span>© {new Date().getFullYear()} SuuroCars</span>
       <span>Find a car. Make your next move.</span>
     </div>
   </footer>

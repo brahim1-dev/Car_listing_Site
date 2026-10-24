@@ -7,6 +7,7 @@ import userRouter from './routes/user.router.js'
 import authRouter from './routes/auth.router.js';
 import cloudinaryRouter from './routes/cloudinary.router.js';
 import listingRouter from './routes/Listing.router.js';
+import adminRouter from './routes/admin.router.js';
 
 dotenv.config({ path: resolve(dirname(fileURLToPath(import.meta.url)), '../.env') });
 
@@ -18,6 +19,7 @@ app.use("/api/user", userRouter)
 app.use("/api/auth", authRouter)
 app.use("/api/cloudinary", cloudinaryRouter)
 app.use("/api/listing", listingRouter)
+app.use("/api/admin", adminRouter)
 
 const port = process.env.PORT || 4000;
 

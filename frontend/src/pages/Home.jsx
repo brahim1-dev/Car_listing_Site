@@ -173,7 +173,7 @@ const Home = () => {
     <main className="home-page">
       <section className="home-hero">
         <div className="home-hero-copy">
-          <p className="home-eyebrow">IftiinsheAuto marketplace</p>
+          <p className="home-eyebrow">SuuroCars marketplace</p>
           <h1>Find your next perfect vehicle with ease</h1>
           <p>
             Browse local cars for sale and rent, compare the details, and connect

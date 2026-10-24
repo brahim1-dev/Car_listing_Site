@@ -1,18 +1,53 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { FaSearch } from "react-icons/fa"
 import { Link, useNavigate } from "react-router-dom"
 import { toast } from "react-toastify"
 import { useAppContext } from "../context/useAppContext"
-import { logOut } from "../firebase"
+import { auth, logOut } from "../firebase"
 
 const Header = () => {
   const { currentUser, signoutUserStart, signoutUserSuccess, signoutUserFailure, loading } = useAppContext()
   const navigate = useNavigate()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
+  const [adminUid, setAdminUid] = useState("")
+  const isAdmin = Boolean(currentUser && adminUid === currentUser.uid)
   const avatarLabel = (currentUser?.displayName || currentUser?.email || "User")
     .charAt(0)
     .toUpperCase()
+
+  useEffect(() => {
+    if (!currentUser || !auth) return undefined
+
+    let isCurrent = true
+    const checkAdminAccess = async () => {
+      try {
+        const firebaseUser = auth.currentUser
+        if (!firebaseUser || firebaseUser.uid !== currentUser.uid) {
+          throw new Error("The signed-in user changed before admin access could be checked.")
+        }
+        const idToken = await firebaseUser.getIdToken()
+        const response = await fetch("/api/admin/access", {
+          headers: { Authorization: `Bearer ${idToken}` },
+        })
+        const result = await response.json()
+        if (!response.ok) {
+          throw new Error(result.message || "Could not check administrator access.")
+        }
+        if (isCurrent) {
+          setAdminUid(result.data.isAdmin ? currentUser.uid : "")
+        }
+      } catch (error) {
+        if (isCurrent) setAdminUid("")
+        console.error("Could not check administrator access:", error)
+      }
+    }
+
+    checkAdminAccess()
+    return () => {
+      isCurrent = false
+    }
+  }, [currentUser])
 
   const handleSearch = (event) => {
     event.preventDefault()
@@ -41,8 +76,8 @@ const Header = () => {
       <div className="flex items-center justify-between gap-4 max-w-6xl mx-auto p-3">
         <Link to="/">
           <h1 className="font-bold text-sm sm:text-xl flex flex-wrap">
-            <span className="text-slate-500">Iftiinshe</span>
-            <span className="text-slate-700">Auto</span>
+            <span className="text-slate-500">Suuro</span>
+            <span className="text-slate-700">Cars</span>
           </h1>
         </Link>
         <form
@@ -104,6 +139,15 @@ const Header = () => {
                     >
                       Profile
                     </Link>
+                    {isAdmin && (
+                      <Link
+                        className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
+                        to="/admin"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Admin dashboard
+                      </Link>
+                    )}
                     <button
                       className="block w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 disabled:opacity-60"
                       type="button"

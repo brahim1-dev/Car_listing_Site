@@ -3,6 +3,7 @@ import Home from "./pages/Home"
 import SignIn from "./pages/SignIn"
 import SingUp from "./pages/SignUp"
 import About from "./pages/About"
+import AdminDashboard from "./pages/AdminDashboard"
 import Profile from "./pages/Profile"
 import CarListing from "./pages/Carlisting"
 import Listing from "./pages/Listing"
@@ -26,6 +27,14 @@ const App = () => {
           <Route path="/sign-in" element={<SignIn />} />
           <Route path="/sign-up" element={<SingUp />} />
           <Route path="/about" element={<About />} />
+          <Route
+            path="/admin"
+            element={
+              <PrivateRoute>
+                <AdminDashboard />
+              </PrivateRoute>
+            }
+          />
           <Route path="/search" element={<Search key={location.search} />} />
           <Route path="/listing/:listingId" element={<Listing />} />
           <Route

@@ -31,7 +31,7 @@ const steps = [
 const About = () => (
   <main className="about-page">
     <section className="about-hero">
-      <p className="about-eyebrow">About IftiinsheAuto</p>
+      <p className="about-eyebrow">About SuuroCars</p>
       <h1>A simpler way to find your next car.</h1>
       <p>
         Explore cars for sale and rent, compare useful details, and connect
@@ -54,7 +54,7 @@ const About = () => (
         <p className="about-eyebrow">Our marketplace</p>
         <h2>Local listings. Clear details. Direct connection.</h2>
         <p>
-          IftiinsheAuto brings car listings together in one place. Whether
+          SuuroCars brings car listings together in one place. Whether
           you&apos;re looking to buy or rent, you can browse photos and vehicle
           information, check prices and offers, and reach out to the listing
           owner when you&apos;re ready.
