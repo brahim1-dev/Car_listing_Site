@@ -1,5 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import { existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import connectDB from './config/db.js';
@@ -14,12 +15,24 @@ dotenv.config({ path: resolve(dirname(fileURLToPath(import.meta.url)), '../.env'
 const app = express();
 app.use(express.json())
 
+app.get('/health', (req, res) => res.status(200).json({ status: 'ok' }));
 
 app.use("/api/user", userRouter)
 app.use("/api/auth", authRouter)
 app.use("/api/cloudinary", cloudinaryRouter)
 app.use("/api/listing", listingRouter)
 app.use("/api/admin", adminRouter)
+
+const frontendDistPath = resolve(dirname(fileURLToPath(import.meta.url)), '../frontend/dist');
+const frontendIndexPath = resolve(frontendDistPath, 'index.html');
+
+if (existsSync(frontendIndexPath)) {
+  app.use(express.static(frontendDistPath));
+  app.get('/{*splat}', (req, res, next) => {
+    if (req.path === '/api' || req.path.startsWith('/api/')) return next();
+    return res.sendFile(frontendIndexPath, (error) => error && next(error));
+  });
+}
 
 const port = process.env.PORT || 4000;
 

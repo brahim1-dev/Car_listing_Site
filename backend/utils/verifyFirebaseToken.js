@@ -1,7 +1,6 @@
 import jwt from "jsonwebtoken";
 
-const firebaseProjectId = () =>
-  process.env.FIREBASE_PROJECT_ID || "carlistsite-52ae7";
+const firebaseProjectId = () => process.env.FIREBASE_PROJECT_ID;
 const certificateUrl =
   "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com";
 let certificates;

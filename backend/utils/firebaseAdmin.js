@@ -13,7 +13,7 @@ const getFirebaseAdminApp = () => {
   return initializeApp(
     {
       credential,
-      projectId: process.env.FIREBASE_PROJECT_ID || "carlistsite-52ae7",
+      projectId: process.env.FIREBASE_PROJECT_ID,
     },
     "marketplace-admin",
   );

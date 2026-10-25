@@ -15,35 +15,23 @@ import {
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain:
-    import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ||
-    "carlistsite-52ae7.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "carlistsite-52ae7",
-  storageBucket:
-    import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ||
-    "carlistsite-52ae7.firebasestorage.app",
-  messagingSenderId:
-    import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "952018284293",
-  appId:
-    import.meta.env.VITE_FIREBASE_APP_ID ||
-    "1:952018284293:web:7f71d08ec25d3957d2916c",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-const firebaseApiKey = firebaseConfig.apiKey?.trim();
-const hasFirebaseApiKey =
-  firebaseApiKey && firebaseApiKey !== "your-firebase-web-api-key";
+const hasFirebaseConfig = Object.values(firebaseConfig).every(
+  (value) => typeof value === "string" && value.trim(),
+);
 
-export const firebaseConfigError = hasFirebaseApiKey
+export const firebaseConfigError = hasFirebaseConfig
   ? null
-  : "Firebase is not configured. Set VITE_FIREBASE_API_KEY in frontend/.env using the Web API key from your Firebase project, then restart the frontend.";
+  : "Firebase is not configured. Set all VITE_FIREBASE_* values in frontend/.env, then restart the frontend.";
 
-export const auth = hasFirebaseApiKey
-  ? getAuth(
-      initializeApp({
-        ...firebaseConfig,
-        apiKey: firebaseApiKey,
-      }),
-    )
+export const auth = hasFirebaseConfig
+  ? getAuth(initializeApp(firebaseConfig))
   : null;
 
 const googleProvider = new GoogleAuthProvider();
