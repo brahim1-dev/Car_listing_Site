@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom"
 import { toast } from "react-toastify"
 import { auth } from "../firebase"
 import { uploadCarImage } from "../cloudinary"
+import { readApiResponse } from "../utils/readApiResponse"
 
 const initialForm = {
   name: "",
@@ -76,6 +77,7 @@ const CarListing = () => {
   const [savedDraft] = useState(() => loadListingDraft(draftKey))
   const [formData, setFormData] = useState(savedDraft?.formData ?? initialForm)
   const [imageURLs, setImageURLs] = useState(savedDraft?.imageURLs ?? [])
+  const [imageURLInput, setImageURLInput] = useState("")
   const [selectedFiles, setSelectedFiles] = useState([])
   const [isLoadingListing, setIsLoadingListing] = useState(isEditing)
   const [listingLoadError, setListingLoadError] = useState("")
@@ -94,7 +96,7 @@ const CarListing = () => {
         const response = await fetch("/api/listing/mine", {
           headers: { Authorization: `Bearer ${idToken}` },
         })
-        const result = await response.json()
+        const result = await readApiResponse(response)
         if (!response.ok) {
           throw new Error(result.message || "Could not load this listing.")
         }
@@ -203,10 +205,43 @@ const CarListing = () => {
     setImageURLs((images) => images.filter((_, imageIndex) => imageIndex !== index))
   }
 
+  const addImageURL = () => {
+    const value = imageURLInput.trim()
+    let parsedURL
+    try {
+      parsedURL = new URL(value)
+    } catch {
+      toast.error("Enter a valid image URL.")
+      return
+    }
+
+    if (!["http:", "https:"].includes(parsedURL.protocol)) {
+      toast.error("Image links must start with http:// or https://.")
+      return
+    }
+
+    if (imageURLs.length + selectedFiles.length >= 6) {
+      toast.error("You can add up to 6 images.")
+      return
+    }
+
+    if (imageURLs.includes(parsedURL.href)) {
+      toast.error("This image has already been added.")
+      return
+    }
+
+    setImageURLs((images) => [...images, parsedURL.href])
+    setImageURLInput("")
+  }
+
   const handleSubmit = async (event) => {
     event.preventDefault()
-    if (!imageURLs.length) {
-      toast.error("Upload at least one car image.")
+    if (!imageURLs.length && !selectedFiles.length) {
+      toast.error("Add at least one image by uploading a file or entering an image URL.")
+      return
+    }
+    if (selectedFiles.length) {
+      toast.error("Upload your selected image files before creating the listing.")
       return
     }
     if (!auth?.currentUser) {
@@ -238,7 +273,7 @@ const CarListing = () => {
           }),
         },
       )
-      const result = await response.json()
+      const result = await readApiResponse(response)
       if (!response.ok) {
         throw new Error(result.message || "Could not create the car listing.")
       }
@@ -488,7 +523,7 @@ const CarListing = () => {
           <div className="car-listing-media">
             <div className="car-listing-upload-label">
               <strong>Images:</strong>
-              <span>The first image will be the cover (max 6).</span>
+              <span>Upload files or add image links. The first image is the cover (max 6).</span>
             </div>
             <input
               ref={fileInputRef}
@@ -508,11 +543,42 @@ const CarListing = () => {
               {isUploading ? "Uploading..." : "Upload"}
             </button>
 
+            <div className="car-listing-url-row">
+              <label className="sr-only" htmlFor="car-image-url">Image URL</label>
+              <input
+                className="car-listing-input"
+                id="car-image-url"
+                type="url"
+                value={imageURLInput}
+                onChange={(event) => setImageURLInput(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault()
+                    addImageURL()
+                  }
+                }}
+                placeholder="Paste an image link (https://...)"
+                disabled={isBusy || imageURLs.length + selectedFiles.length >= 6}
+              />
+              <button
+                className="car-listing-upload-button car-listing-add-url-button"
+                type="button"
+                onClick={addImageURL}
+                disabled={
+                  isBusy ||
+                  !imageURLInput.trim() ||
+                  imageURLs.length + selectedFiles.length >= 6
+                }
+              >
+                Add link
+              </button>
+            </div>
+
             <p className="car-listing-image-count">
               {selectedFiles.length
                 ? `${selectedFiles.length} image(s) selected`
                 : imageURLs.length
-                  ? `${imageURLs.length} image(s) uploaded`
+                  ? `${imageURLs.length} of 6 image(s) added`
                   : "Choose up to 6 images"}
             </p>
             {imageURLs.length > 0 && (

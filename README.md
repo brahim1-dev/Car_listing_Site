@@ -7,7 +7,7 @@ SuuroCars is a car marketplace for discovering vehicles for sale or rent. Browse
 - Firebase email/password and Google authentication.
 - Search listings by keywords, vehicle type, price, year, condition, fuel type, transmission, and offers.
 - Create, edit, and delete your own car listings.
-- Upload listing and profile images through signed Cloudinary uploads.
+- Upload listing and profile images through signed Cloudinary uploads, or add car photos with direct HTTP(S) image URLs.
 - Browse photo galleries, vehicle details, pricing, seller information, and posting dates.
 - Signed-in buyers can prepare a message and open their email app to contact a seller.
 - Admin dashboard for reviewing accounts and removing Firebase users and their listings.
@@ -44,13 +44,13 @@ Create a `.env` file in the repository root:
 
 ```env
 PORT=4000
-MONGODB_URI=mongodb://127.0.0.1:27017/car_listing_site
+MONGODB_URI=mongodb+srv://<database-user>:<password>@<cluster-host>/car_listing_site
 JWT_SECRET=replace-with-a-long-random-secret
 FIREBASE_PROJECT_ID=your-firebase-project-id
 CLOUDINARY_URL=cloudinary://your-api-key:your-api-secret@your-cloud-name
 ```
 
-`MONGODB_URI` defaults to the local URL above. `FIREBASE_PROJECT_ID` defaults to the existing Firebase project ID. Keep backend secrets in the root `.env`; never put them in frontend environment variables or commit them.
+Use the MongoDB Atlas connection URI for your cluster and replace the placeholders with your database user's credentials. If a password contains URL-reserved characters, percent-encode it before adding it to the URI. In Atlas, allow the backend server's IP address under **Network Access** and grant the database user access to the `car_listing_site` database. `MONGODB_URI` defaults to a local MongoDB URL if omitted. Keep backend secrets in the root `.env`; never put them in frontend environment variables or commit them.
 
 ### 3. Configure the frontend
 
@@ -108,8 +108,8 @@ All endpoints are relative to `/api`.
 | `GET` | `/listing/:id` | Get a public listing. |
 | `GET` | `/listing/:id/contact` | Get seller contact as a signed-in non-owner. |
 | `GET` | `/listing/mine` | List the authenticated user's listings. |
-| `POST` | `/listing` | Create a listing. |
-| `PATCH` | `/listing/:id` | Update a listing owned by the authenticated user. |
+| `POST` | `/listing` | Create a listing with 1–6 valid HTTP(S) image URLs. |
+| `PATCH` | `/listing/:id` | Update an owned listing, including its 1–6 image URLs. |
 | `DELETE` | `/listing/:id` | Delete a listing owned by the authenticated user. |
 | `POST` | `/cloudinary/car-image-signature` | Request a signed car-image upload. |
 | `POST` | `/cloudinary/profile-photo-signature` | Request a signed profile-photo upload. |

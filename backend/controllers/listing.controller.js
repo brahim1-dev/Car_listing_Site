@@ -45,6 +45,7 @@ const validateListingData = (data, { partial = false } = {}) => {
     if (
       !Array.isArray(data.imageURLs) ||
       data.imageURLs.length === 0 ||
+      data.imageURLs.length > 6 ||
       data.imageURLs.some(
         (url) =>
           typeof url !== "string" ||
@@ -52,7 +53,7 @@ const validateListingData = (data, { partial = false } = {}) => {
           !["http:", "https:"].includes(new URL(url).protocol),
       )
     ) {
-      return "imageURLs must be a non-empty array of valid HTTP or HTTPS URLs.";
+      return "imageURLs must contain 1 to 6 valid HTTP or HTTPS URLs.";
     }
   }
 

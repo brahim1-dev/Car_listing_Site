@@ -66,8 +66,8 @@ const carListingSchema = new mongoose.Schema({
     type: [{ type: String, trim: true }],
     required: true,
     validate: {
-      validator: (images) => images.length > 0,
-      message: "At least one car image is required.",
+      validator: (images) => images.length > 0 && images.length <= 6,
+      message: "Add between 1 and 6 car images.",
     },
   },
   location: {

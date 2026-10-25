@@ -1148,6 +1148,21 @@ body{
   font-size: 13px;
 }
 
+.car-listing-url-row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.car-listing-url-row .car-listing-input {
+  min-width: 0;
+}
+
+.car-listing-add-url-button {
+  white-space: nowrap;
+}
+
 .car-listing-upload-label strong {
   color: #334155;
 }
@@ -1308,11 +1323,16 @@ body{
   }
 
   .car-listing-upload-label,
+  .car-listing-url-row,
   .car-listing-image-count,
   .car-listing-previews,
   .car-listing-submit,
   .car-listing-signin-note {
     grid-column: 1;
+  }
+
+  .car-listing-url-row {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
