@@ -35,6 +35,7 @@ export const auth = hasFirebaseConfig
   : null;
 
 const googleProvider = new GoogleAuthProvider();
+let googleAuthRequest = null;
 
 const requireAuth = () => {
   if (!auth) {
@@ -44,20 +45,31 @@ const requireAuth = () => {
   return auth;
 };
 
-const authenticateWithGoogle = async (allowSignUp) => {
-  const result = await signInWithPopup(requireAuth(), googleProvider);
-
-  if (!allowSignUp && getAdditionalUserInfo(result)?.isNewUser) {
-    try {
-      await deleteUser(result.user);
-    } finally {
-      await signOut(requireAuth());
-    }
-
-    throw new Error("No account exists for this Google account. Please sign up first.");
+const authenticateWithGoogle = (allowSignUp) => {
+  if (googleAuthRequest) {
+    return googleAuthRequest;
   }
 
-  return result.user;
+  const request = (async () => {
+    const result = await signInWithPopup(requireAuth(), googleProvider);
+
+    if (!allowSignUp && getAdditionalUserInfo(result)?.isNewUser) {
+      try {
+        await deleteUser(result.user);
+      } finally {
+        await signOut(requireAuth());
+      }
+
+      throw new Error("No account exists for this Google account. Please sign up first.");
+    }
+
+    return result.user;
+  })();
+
+  googleAuthRequest = request.finally(() => {
+    googleAuthRequest = null;
+  });
+  return googleAuthRequest;
 };
 
 export const signUpWithGoogle = () => authenticateWithGoogle(true);

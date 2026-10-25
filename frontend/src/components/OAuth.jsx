@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { signInWithGoogle, signUpWithGoogle } from "../firebase";
@@ -6,10 +6,16 @@ import { useAppContext } from "../context/useAppContext";
 
 const OAuth = ({ mode = "signin" }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const requestInProgress = useRef(false);
   const navigate = useNavigate();
   const { signInStart, signInSuccess, signInFailure } = useAppContext();
 
   const handleGoogleSignIn = async () => {
+    if (requestInProgress.current) {
+      return;
+    }
+
+    requestInProgress.current = true;
     setIsSubmitting(true);
     signInStart();
 
@@ -33,6 +39,7 @@ const OAuth = ({ mode = "signin" }) => {
       signInFailure(message);
       toast.error(message);
     } finally {
+      requestInProgress.current = false;
       setIsSubmitting(false);
     }
   };
