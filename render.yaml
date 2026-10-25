@@ -3,7 +3,7 @@ services:
     name: suurocars
     runtime: node
     plan: free
-    buildCommand: npm ci && npm ci --prefix frontend && npm run build
+    buildCommand: npm ci && npm ci --include=dev --prefix frontend && npm run build
     startCommand: npm start
     healthCheckPath: /health
     envVars:
